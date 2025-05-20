@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "pimcore.fullname" . }}-messenger
+  labels:
+    {{- include "pimcore.labels" . | nindent 4 }}
+data:
+  messenger.yaml: |
+    framework:
+      messenger:
+        transports:
+          pimcore_core: '%env(MESSENGER_TRANSPORT_DSN)%/%2f/pimcore_core'
+          pimcore_maintenance: '%env(MESSENGER_TRANSPORT_DSN)%/%2f/pimcore_maintenance'
+          pimcore_scheduled_tasks: '%env(MESSENGER_TRANSPORT_DSN)%/%2f/pimcore_scheduled_tasks'
+          pimcore_image_optimize: '%env(MESSENGER_TRANSPORT_DSN)%/%2f/pimcore_image_optimize'
+          pimcore_asset_update: '%env(MESSENGER_TRANSPORT_DSN)%/%2f/pimcore_asset_update'

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "pimcore.fullname" . }}-cache
+  labels:
+    {{- include "pimcore.labels" . | nindent 4 }}
+data:
+  cache.yaml: |
+    framework:
+      cache:
+        pools:
+          pimcore.cache.pool:
+            public: true
+            default_lifetime: 31536000
+            adapter: cache.adapter.redis_tag_aware
+            provider: '{{ .Values.php.redisDsn | default (printf "redis://%s-valkey-master:6379" .Release.Name) }}'

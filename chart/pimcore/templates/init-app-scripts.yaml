@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "pimcore.fullname" . }}-init-app-scripts
+  labels:
+    {{- include "pimcore.labels" . | nindent 4 }}
+data:
+  pre-init-app.sh: |
+    #!/bin/sh
+    set -e
+
+    echo "Waiting for database at {{ printf "%s-mariadb" .Release.Name }}:3306 ..."
+    until mariadb-admin ping -h"{{ printf "%s-mariadb" .Release.Name }}" -u"${PIMCORE_INSTALL_MYSQL_USERNAME}" -p"${PIMCORE_INSTALL_MYSQL_PASSWORD}" --silent; do
+      echo "... not yet"
+      sleep 5
+    done
+    echo "Database is available."
+    echo "copy configs"
+    mkdir -p /var/www/html/config/packages
+    cp /data/config/packages/* /var/www/html/config/packages/
+    echo "Setting ownership for /var/www/html ..."
+    chown -R 33:33 /var/www/html || true
+
+  init-app.sh: |
+    #!/bin/sh
+    set -e
+
+    if [ -f /var/www/html/composer.json ]; then
+      echo ""
+      echo "Pimcore seems to be already installed"
+      echo ""
+
+    else
+      echo ""
+      echo "Pimcore is not installed yet"
+      echo "Create Pimcore project"
+      echo ""
+      composer config --global allow-plugins.php-http/discovery true
+      composer create-project {{ .Values.pimecorePackage }} new-project
+
+      echo ""
+      echo "Copy new project to /var/www/html"
+      echo ""
+      cp -a new-project/. ./
+      rm -rf new-project
+
+      echo ""
+      echo "Install Pimcore"
+      echo ""
+      php vendor/bin/pimcore-install --no-interaction
+    fi

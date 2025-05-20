@@ -1,0 +1,270 @@
+# Default values for pimcore.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Multireplica is not supported yet
+replicaCount: 1
+
+terminationGracePeriodSeconds: 30
+
+# package to install possible values:
+#   pimcore/skeleton
+#   pimcore/demo
+pimecorePackage: pimcore/skeleton
+
+pvc:
+  storage: 10Gi
+  # storageClassName: "your-storage-class"
+
+php:
+  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+  image:
+    repository: pimcore/pimcore
+    # This sets the pull policy for images.
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "php8.3.21-debug-v3.6"
+  args: ["/startup.sh"]
+  securityContext:
+    runAsUser: 33
+    runAsGroup: 33
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  livenessProbe:
+    tcpSocket:
+      port: 9000
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+    successThreshold: 1
+    timeoutSeconds: 2
+
+  readinessProbe:
+    tcpSocket:
+      port: 9000
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+    successThreshold: 1
+    timeoutSeconds: 2
+
+  startupProbe:
+    tcpSocket:
+      port: 9000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    failureThreshold: 120
+    successThreshold: 1
+    timeoutSeconds: 2
+
+  # Additional volumeMounts on the output Deployment definition.
+  volumeMounts: []
+  # - name: foo
+  #   mountPath: "/etc/foo"
+  #   readOnly: true
+
+  # redisDsn: redis://myredis:6379
+
+  env:
+    APP_ENV: "dev"
+    APP_DEBUG: "false"
+    PIMCORE_INSTALL_ADMIN_USERNAME: "admin"
+    # see: https://docs.pimcore.com/platform/next/Pimcore/Getting_Started/Product_Registration
+    PIMCORE_INSTALL_INSTANCE_IDENTIFIER: "your-instance-identifier"
+
+  secretEnv:
+    PIMCORE_INSTALL_ADMIN_PASSWORD: "admin"
+    # see: https://docs.pimcore.com/platform/next/Pimcore/Getting_Started/Product_Registration
+    PIMCORE_INSTALL_PRODUCT_KEY: "your-product-key"
+    PIMCORE_INSTALL_ENCRYPTION_SECRET: "your-encryption-secret"
+    # must the same as in the mariadb section
+    PIMCORE_INSTALL_MYSQL_PASSWORD: "pimcore-password"
+
+initApp:
+  image:
+    repository: bitnami/mariadb
+    tag: 11.4.6-debian-12-r0
+    pullPolicy: IfNotPresent
+
+nginx:
+  image:
+    repository: nginx
+    tag: 1.28.0-alpine
+    pullPolicy: IfNotPresent
+
+supervisord:
+  image:
+    repository: pimcore/pimcore
+    tag: php8.3.21-supervisord-v3.6
+    pullPolicy: IfNotPresent
+  securityContext:
+    runAsUser: 33
+    runAsGroup: 33
+
+# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# This is for setting Kubernetes Annotations to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+podAnnotations: {}
+# This is for setting Kubernetes Labels to a Pod.
+# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 33
+
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: ClusterIP
+  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  port: 80
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: false
+  # className:
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: host.example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+
+# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+# Multireplica is not supported yet
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Additional volumes on the output Deployment definition.
+volumes: []
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# must be the same as in the rabbitmq section
+rabbitmqUser: user
+rabbitmqPassword: bitnami
+
+
+mariadb:
+  enabled: true
+  auth:
+    rootPassword: my-root-password
+    database: pimcore
+    username: pimcore
+    # must be the same as in the secrets section
+    password: pimcore-password
+  initdbScripts:
+    01-charset.sql: |
+      ALTER DATABASE pimcore CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;
+  primary:
+    resources: {}
+      # We usually recommend not to specify default resources and to leave this as a conscious
+      # choice for the user. This also increases chances charts run on environments with little
+      # resources, such as Minikube. If you do want to specify resources, uncomment the following
+      # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+      # limits:
+      #   cpu: 100m
+      #   memory: 128Mi
+      # requests:
+      #   cpu: 100m
+      #   memory: 128Mi
+    affinity: {}
+    tolerations: []
+
+valkey:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+  primary:
+    extraFlags:
+      - --maxmemory 128mb
+      - --maxmemory-policy volatile-lru
+      - --save ""
+    persistence:
+      enabled: true
+      size: 2Gi
+    resources: {}
+      # We usually recommend not to specify default resources and to leave this as a conscious
+      # choice for the user. This also increases chances charts run on environments with little
+      # resources, such as Minikube. If you do want to specify resources, uncomment the following
+      # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+      # limits:
+      #   cpu: 100m
+      #   memory: 128Mi
+      # requests:
+      #   cpu: 100m
+      #   memory: 128Mi
+    affinity: {}
+    tolerations: []
+
+rabbitmq:
+  enabled: true
+  auth:
+    # must be the same as in the rabbitmq* keys
+    username: user
+    password: bitnami
+    erlangCookie: my-erlang-cookie
+  persistence:
+    enabled: true
+    size: 2Gi
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+  affinity: {}
+  tolerations: []

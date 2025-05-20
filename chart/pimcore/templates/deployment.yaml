@@ -1,0 +1,213 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pimcore.fullname" . }}
+  labels:
+    {{- include "pimcore.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "pimcore.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "pimcore.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/php-env-configmap: {{ include (print $.Template.BasePath "/php-env-configmap.yaml") . | sha256sum }}
+        checksum/php-env-secret: {{ include (print $.Template.BasePath "/php-env-secret.yaml") . | sha256sum }}
+        checksum/init-app-scripts: {{ include (print $.Template.BasePath "/init-app-scripts.yaml") . | sha256sum }}
+        checksum/messenger-configmap: {{ include (print $.Template.BasePath "/messenger-configmap.yaml") . | sha256sum }}
+        checksum/nginx-configmap: {{ include (print $.Template.BasePath "/nginx-configmap.yaml") . | sha256sum }}
+        checksum/cache-configmap: {{ include (print $.Template.BasePath "/cache-configmap.yaml") . | sha256sum }}
+        checksum/supervisord-configmap: {{ include (print $.Template.BasePath "/supervisord-configmap.yaml") . | sha256sum }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "pimcore.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: pre-init-app
+          image: {{ .Values.initApp.image.repository }}:{{ .Values.initApp.image.tag }}
+          imagePullPolicy: {{ .Values.initApp.image.pullPolicy }}
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          command: [ "/pre-init-app.sh" ]
+          envFrom:
+            - configMapRef:
+                name: {{ include "pimcore.fullname" . }}-php-env
+            - secretRef:
+                name: {{ include "pimcore.fullname" . }}-php-env
+          volumeMounts:
+            - name: pimcore-root
+              mountPath: /var/www/html
+            - name: messenger-config
+              mountPath: /data/config/packages/messenger.yaml
+              subPath: messenger.yaml
+              readOnly: true
+            - name: pimcore-cache-config
+              mountPath: /data/config/packages/cache.yaml
+              subPath: cache.yaml
+              readOnly: true
+            - name: init-app-scripts
+              mountPath: /pre-init-app.sh
+              subPath: pre-init-app.sh
+              readOnly: true
+
+        - name: init-app
+          {{- with .Values.php.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.php.image.repository }}:{{ .Values.php.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.php.image.pullPolicy }}
+          args: [ "/init-app.sh" ]
+          envFrom:
+            - configMapRef:
+                name: {{ include "pimcore.fullname" . }}-php-env
+            - secretRef:
+                name: {{ include "pimcore.fullname" . }}-php-env
+          {{- with .Values.php.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: pimcore-root
+              mountPath: /var/www/html
+            - name: init-app-scripts
+              mountPath: /init-app.sh
+              subPath: init-app.sh
+              readOnly: true
+      containers:
+        - name: php
+          {{- with .Values.php.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.php.image.repository }}:{{ .Values.php.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.php.image.pullPolicy }}
+          ports:
+            - name: php-fpm
+              containerPort: 9000
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "pimcore.fullname" . }}-php-env
+            - secretRef:
+                name: {{ include "pimcore.fullname" . }}-php-env
+          {{- with .Values.php.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.php.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.php.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.php.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: pimcore-root
+              mountPath: /var/www/html
+          {{- with .Values.php.volumeMounts }}
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
+        - name: nginx
+          image: {{ .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag }}
+          imagePullPolicy: {{ .Values.nginx.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - name: pimcore-root
+              mountPath: /var/www/html
+              readOnly: true
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+              readOnly: true
+          resources: {}
+        - name: supervisord
+          image: {{ .Values.supervisord.image.repository }}:{{ .Values.supervisord.image.tag }}
+          imagePullPolicy: {{ .Values.supervisord.image.pullPolicy }}
+          {{- with .Values.supervisord.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "pimcore.fullname" . }}-php-env
+            - secretRef:
+                name: {{ include "pimcore.fullname" . }}-php-env
+          volumeMounts:
+            - name: pimcore-root
+              mountPath: /var/www/html
+          resources: {}
+      volumes:
+        - name: pimcore-root
+          persistentVolumeClaim:
+            claimName: {{ include "pimcore.fullname" . }}-root
+        - name: init-app-scripts
+          configMap:
+            name: {{ include "pimcore.fullname" . }}-init-app-scripts
+            defaultMode: 0755
+        - name: nginx-config
+          configMap:
+            name: {{ include "pimcore.fullname" . }}-nginx
+            items:
+              - key: default.conf
+                path: default.conf
+        - name: messenger-config
+          configMap:
+            name: {{ include "pimcore.fullname" . }}-messenger
+            items:
+              - key: messenger.yaml
+                path: messenger.yaml
+        - name: supervisord-config
+          configMap:
+            name: {{ include "pimcore.fullname" . }}-supervisord
+            items:
+              - key: supervisord.conf
+                path: supervisord.conf
+        - name: pimcore-cache-config
+          configMap:
+            name: {{ include "pimcore.fullname" . }}-cache
+      {{- with .Values.volumes }}
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
