@@ -2,32 +2,37 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# Multireplica is not supported yet
+# -- Multireplica is not supported yet, please leave it as 1
 replicaCount: 1
 
+# -- This is the termination grace period for the pod
 terminationGracePeriodSeconds: 30
 
-# package to install possible values:
-#   pimcore/skeleton
+# -- package to install possible values:<br />
+#   pimcore/skeleton<br />
 #   pimcore/demo
 pimecorePackage: pimcore/skeleton
 
 pvc:
+  # -- Size of the volume for the web root
   storage: 10Gi
   # storageClassName: "your-storage-class"
 
 php:
   # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
   image:
+    # -- image repository for the pimcore php container
     repository: pimcore/pimcore
-    # This sets the pull policy for images.
+    # -- This sets the pull policy for images.
     pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
+    # -- Image tag
     tag: "php8.3.21-debug-v3.6"
-  args: ["/startup.sh"]
   securityContext:
+    # -- User to run the php conatainer, 33=www-data
     runAsUser: 33
+    # -- Group to run the php conatainer, 33=www-data
     runAsGroup: 33
+  # -- This sets resources for the php container
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -40,6 +45,7 @@ php:
     #   cpu: 100m
     #   memory: 128Mi
 
+  # -- liveness probe
   livenessProbe:
     tcpSocket:
       port: 9000
@@ -49,6 +55,7 @@ php:
     successThreshold: 1
     timeoutSeconds: 2
 
+  # -- readiness probe
   readinessProbe:
     tcpSocket:
       port: 9000
@@ -58,6 +65,7 @@ php:
     successThreshold: 1
     timeoutSeconds: 2
 
+  # -- startup probe
   startupProbe:
     tcpSocket:
       port: 9000
@@ -67,7 +75,7 @@ php:
     successThreshold: 1
     timeoutSeconds: 2
 
-  # Additional volumeMounts on the output Deployment definition.
+  # -- Additional volumeMounts for the Deployment.
   volumeMounts: []
   # - name: foo
   #   mountPath: "/etc/foo"
@@ -75,124 +83,152 @@ php:
 
   # redisDsn: redis://myredis:6379
 
+  # Environment variables for the php, supervisord, pre-init-app and init-app container
   env:
+    # -- Environment to start, one of: dev, test, prod
     APP_ENV: "dev"
+    # -- Debug mode, true or false
     APP_DEBUG: "false"
+    # -- The name of the admin user
     PIMCORE_INSTALL_ADMIN_USERNAME: "admin"
-    # see: https://docs.pimcore.com/platform/next/Pimcore/Getting_Started/Product_Registration
+    # -- see: https://docs.pimcore.com/platform/next/Pimcore/Getting_Started/Product_Registration
     PIMCORE_INSTALL_INSTANCE_IDENTIFIER: "your-instance-identifier"
 
+  # Secret environment variables for the php, supervisord, pre-init-app and init-app container
   secretEnv:
+    # -- The password for the admin user
     PIMCORE_INSTALL_ADMIN_PASSWORD: "admin"
-    # see: https://docs.pimcore.com/platform/next/Pimcore/Getting_Started/Product_Registration
+    # -- see: https://docs.pimcore.com/platform/next/Pimcore/Getting_Started/Product_Registration
     PIMCORE_INSTALL_PRODUCT_KEY: "your-product-key"
+    # -- see: https://docs.pimcore.com/platform/next/Pimcore/Getting_Started/Product_Registration
     PIMCORE_INSTALL_ENCRYPTION_SECRET: "your-encryption-secret"
-    # must the same as in the mariadb section
+    # -- The database passeord, must the same as in the mariadb section
     PIMCORE_INSTALL_MYSQL_PASSWORD: "pimcore-password"
 
-initApp:
+preInitApp:
   image:
+    # -- image repository for the init-app container
     repository: bitnami/mariadb
-    tag: 11.4.6-debian-12-r0
+    # -- This sets the pull policy for images.
     pullPolicy: IfNotPresent
+    # -- Image tag
+    tag: 11.4.6-debian-12-r0
 
 nginx:
   image:
+    # -- image repository for the nginx container
     repository: nginx
-    tag: 1.28.0-alpine
+    # -- This sets the pull policy for images.
     pullPolicy: IfNotPresent
+    # -- Image tag
+    tag: 1.28.0-alpine
 
 supervisord:
   image:
+    # -- image repository for the supervisord container
     repository: pimcore/pimcore
+    # -- Image tag
     tag: php8.3.21-supervisord-v3.6
+    # -- This sets the pull policy for images.
     pullPolicy: IfNotPresent
   securityContext:
+    # -- User to run the supervisord container, 33=www-data
     runAsUser: 33
+    # -- Group to run the supervisord container, 33=www-data
     runAsGroup: 33
 
-# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+# -- This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
-# This is to override the chart name.
+# -- This is to override the chart name.
 nameOverride: ""
+# -- This is to override the chart full name.
 fullnameOverride: ""
 
-# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+# -- This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:
-  # Specifies whether a service account should be created
+  # -- Specifies whether a service account should be created
   create: true
-  # Automatically mount a ServiceAccount's API credentials?
+  # -- Automatically mount a ServiceAccount's API credentials?
   automount: true
-  # Annotations to add to the service account
+  # -- Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
+  # -- The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
-# This is for setting Kubernetes Annotations to a Pod.
+# -- This is for setting Kubernetes Annotations to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 podAnnotations: {}
-# This is for setting Kubernetes Labels to a Pod.
+# -- This is for setting Kubernetes Labels to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 podLabels: {}
 
 podSecurityContext:
+  ## -- set the fsGroup for the pod to 33=www-data
   fsGroup: 33
 
 
-# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+# -- This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
-  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  # -- This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
   type: ClusterIP
-  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  # -- This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
   port: 80
 
-# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+# -- This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
+  # -- This sets the ingress enabled or not
   enabled: false
   # className:
+  # -- This sets the ingress annotations
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
+    # -- This sets the host name for the ingress
     - host: host.example.local
       paths:
         - path: /
           pathType: ImplementationSpecific
+  # -- This sets the tls for the ingress
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
 
 
-# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
-# Multireplica is not supported yet
+# -- This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
+  # -- This sets the autoscaling enabled or not, multireplica is not supported yet, please leave it as false
   enabled: false
   minReplicas: 1
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
-# Additional volumes on the output Deployment definition.
+# -- Additional volumes on the output Deployment definition.
 volumes: []
 # - name: foo
 #   secret:
 #     secretName: mysecret
 #     optional: false
 
+# -- nodeSelector for the pod
 nodeSelector: {}
 
+# -- tolerations for the pod
 tolerations: []
 
+# -- affinity for the pod
 affinity: {}
 
-# must be the same as in the rabbitmq section
+# -- This is the rabbitmq user, must be the same as in the rabbitmq section
 rabbitmqUser: user
+# -- This is the rabbitmq password, must be the same as in the rabbitmq section
 rabbitmqPassword: bitnami
 
-
 mariadb:
+  # -- This sets the mariadb enabled or not, please refer the mariadb chart to configure the database: https://artifacthub.io/packages/helm/bitnami/mariadb
   enabled: true
   auth:
     rootPassword: my-root-password
@@ -219,6 +255,7 @@ mariadb:
     tolerations: []
 
 valkey:
+  # -- This sets the valkey enabled or not, please refer the valkey chart to configure this service: https://artifacthub.io/packages/helm/bitnami/valkey
   enabled: true
   architecture: standalone
   auth:
@@ -246,6 +283,7 @@ valkey:
     tolerations: []
 
 rabbitmq:
+  # -- This sets the rabbitmq enabled or not, please refer the rabbitmq chart to configure this service: https://artifacthub.io/packages/helm/bitnami/rabbitmq
   enabled: true
   auth:
     # must be the same as in the rabbitmq* keys

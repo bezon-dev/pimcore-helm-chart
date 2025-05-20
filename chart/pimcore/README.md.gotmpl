@@ -30,9 +30,21 @@ Read more about the product registration in the [Pimcore documentation](https://
 ```bash
 helm repo add pimcore-helm-chart https://bezon-dev.github.io/pimcore-helm-chart
 helm repo update
-helm install -n <pimcore-namespace> <release-name> pimcore-helm-chart/pimcore -f values.yaml
+helm install -n <pimcore-namespace> <release-name> pimcore-helm-chart/pimcore -f values.yaml --version {{ template "chart.version" . }}
 ```
 
+## Limitations
+
+Currently the Helm Chart is built to get Pimcore running in a Kubernetes cluster as easy as possible. Just like the [Docker based installation guide](https://docs.pimcore.com/platform/next/Pimcore/Getting_Started/Installation/Docker_Based_Installation). It is not meant to be a production ready solution. The following limitations are known:
+
+* No multi replica or horizontal auto scaling support.
+* No explicit configuration for file storage setup, should be possible via extra volumes but it is not tested.
+* Very simple non high available setups for Mariadb, ValKey (Redis) and RabbitMQ be default. You have to configure them yourself in your `values.yaml` file if you need a production ready setup.
+* No support to use external instances of MariaDB, ValKey (Redis) or RabbitMQ.
+* No support for Backup & Recocery, you have to implement this by yourself.
+* The web root is one persistent volume and includes the whole Pimcore system including the user generated php files.
+
+We will address some of these limitations in the future. If you have any suggestions or feature requests, please open an issue.
 
 {{ template "chart.maintainersSection" . }}
 

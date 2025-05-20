@@ -45,8 +45,8 @@ spec:
       {{- end }}
       initContainers:
         - name: pre-init-app
-          image: {{ .Values.initApp.image.repository }}:{{ .Values.initApp.image.tag }}
-          imagePullPolicy: {{ .Values.initApp.image.pullPolicy }}
+          image: {{ .Values.preInitApp.image.repository }}:{{ .Values.preInitApp.image.tag }}
+          imagePullPolicy: {{ .Values.preInitApp.image.pullPolicy }}
           securityContext:
             runAsUser: 0
             runAsGroup: 0
