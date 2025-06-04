@@ -1,6 +1,6 @@
 # Pimecore Helm Chart
 
-![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2025.1](https://img.shields.io/badge/AppVersion-2025.1-informational?style=flat-square)
+![Version: 1.1.0](https://img.shields.io/badge/Version-1.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2025.1](https://img.shields.io/badge/AppVersion-2025.1-informational?style=flat-square)
 
 A Helm chart to deploy Pimecore on Kubernetes
 
@@ -28,7 +28,7 @@ Read more about the product registration in the [Pimcore documentation](https://
 ```bash
 helm repo add pimcore-helm-chart https://bezon-dev.github.io/pimcore-helm-chart
 helm repo update
-helm install -n <pimcore-namespace> <release-name> pimcore-helm-chart/pimcore -f values.yaml --version 1.0.1
+helm install -n <pimcore-namespace> <release-name> pimcore-helm-chart/pimcore -f values.yaml --version 1.1.0
 ```
 
 ## Limitations
@@ -90,6 +90,7 @@ We will address some of these limitations in the future. If you have any suggest
 | nginx.image.repository | string | `"nginx"` | image repository for the nginx container |
 | nginx.image.tag | string | `"1.28.0-alpine"` | Image tag |
 | nodeSelector | object | `{}` | nodeSelector for the pod |
+| php.bundles | list | `[]` | List of fully qualified bundle class names to register in config/bundles.php and install |
 | php.env.APP_DEBUG | string | `"false"` | Debug mode, true or false |
 | php.env.APP_ENV | string | `"dev"` | Environment to start, one of: dev, test, prod |
 | php.env.PIMCORE_INSTALL_ADMIN_USERNAME | string | `"admin"` | The name of the admin user |
@@ -98,7 +99,10 @@ We will address some of these limitations in the future. If you have any suggest
 | php.image.repository | string | `"pimcore/pimcore"` | image repository for the pimcore php container |
 | php.image.tag | string | `"php8.3.21-debug-v3.6"` | Image tag |
 | php.livenessProbe | object | `{"failureThreshold":3,"initialDelaySeconds":10,"periodSeconds":10,"successThreshold":1,"tcpSocket":{"port":9000},"timeoutSeconds":2}` | liveness probe |
+| php.packages | list | `[]` | List of composer packages to install after Pimcore installation |
 | php.readinessProbe | object | `{"failureThreshold":3,"initialDelaySeconds":5,"periodSeconds":10,"successThreshold":1,"tcpSocket":{"port":9000},"timeoutSeconds":2}` | readiness probe |
+| php.removeBundles | list | `[]` | List of fully qualified bundle class names to uninstall (bin/console pimcore:bundle:uninstall). Remove entries completely once they are uninstalled to prevent uninstall attempts on every pod start. |
+| php.removePackages | list | `[]` | List of composer packages to remove after Pimcore installation. Remove entries completely once they are uninstalled to prevent uninstall attempts on every pod start. |
 | php.resources | object | `{}` | This sets resources for the php container |
 | php.secretEnv.PIMCORE_INSTALL_ADMIN_PASSWORD | string | `"admin"` | The password for the admin user |
 | php.secretEnv.PIMCORE_INSTALL_ENCRYPTION_SECRET | string | `"your-encryption-secret"` | see: https://docs.pimcore.com/platform/next/Pimcore/Getting_Started/Product_Registration |

@@ -96,6 +96,9 @@ spec:
               mountPath: /init-app.sh
               subPath: init-app.sh
               readOnly: true
+            - name: bundles-config
+              mountPath: /var/www/html/config/bundles.php
+              subPath: bundles.php
       containers:
         - name: php
           {{- with .Values.php.securityContext }}
@@ -132,6 +135,9 @@ spec:
           volumeMounts:
             - name: pimcore-root
               mountPath: /var/www/html
+            - name: bundles-config
+              mountPath: /var/www/html/config/bundles.php
+              subPath: bundles.php
           {{- with .Values.php.volumeMounts }}
           {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -196,6 +202,12 @@ spec:
         - name: pimcore-cache-config
           configMap:
             name: {{ include "pimcore.fullname" . }}-cache
+        - name: bundles-config
+          configMap:
+            name: {{ include "pimcore.fullname" . }}-init-app-scripts
+            items:
+              - key: bundles.php
+                path: bundles.php
       {{- with .Values.volumes }}
       {{- toYaml . | nindent 8 }}
       {{- end }}

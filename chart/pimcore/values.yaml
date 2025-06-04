@@ -105,6 +105,19 @@ php:
     # -- The database passeord, must the same as in the mariadb section
     PIMCORE_INSTALL_MYSQL_PASSWORD: "pimcore-password"
 
+  # -- List of composer packages to install after Pimcore installation
+  packages: []
+    # - "pimcore/data-hub"
+  # -- List of composer packages to remove after Pimcore installation. Remove entries completely once they are uninstalled to prevent uninstall attempts on every pod start.
+  removePackages: []
+    # - "pimcore/extension3"
+  # -- List of fully qualified bundle class names to register in config/bundles.php and install
+  bundles: []
+    # - Pimcore\Bundle\DataHubBundle\PimcoreDataHubBundle
+  # -- List of fully qualified bundle class names to uninstall (bin/console pimcore:bundle:uninstall). Remove entries completely once they are uninstalled to prevent uninstall attempts on every pod start.
+  removeBundles: []
+    # - Pimcore\Bundle\DataHubBundle\PimcoreDataHubBundle
+
 preInitApp:
   image:
     # -- image repository for the init-app container

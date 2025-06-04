@@ -49,3 +49,49 @@ data:
       echo ""
       php vendor/bin/pimcore-install --no-interaction
     fi
+
+    {{- if .Values.php.removeBundles }}
+    # Uninstall bundles
+    {{- range $bundle := .Values.php.removeBundles }}
+    BUNDLE_SHORT="{{ $bundle }}"
+    BUNDLE_SHORT="${BUNDLE_SHORT##*\\}"
+    echo "Uninstalling bundle: $BUNDLE_SHORT"
+    bin/console pimcore:bundle:uninstall $BUNDLE_SHORT || true
+    {{- end }}
+    {{- end }}
+
+    {{- if .Values.php.removePackages }}
+    # Remove packages
+    echo "Removing packages:{{- range $e := .Values.php.removePackages }} {{ $e }}{{ end }}"
+    composer remove{{- range $e := .Values.php.removePackages }} {{ $e }}{{- end }}
+    {{- end }}
+
+    {{- if .Values.php.packages }}
+    # Install packages
+    echo "Installing packages:{{- range $e := .Values.php.packages }} {{ $e }}{{ end }}"
+    composer require{{- range $e := .Values.php.packages }} {{ $e }}{{- end }}
+    {{- end }}
+
+
+    {{- if .Values.php.bundles }}
+    # install bundles
+    {{- range $bundle := .Values.php.bundles }}
+    BUNDLE_SHORT="{{ $bundle }}"
+    BUNDLE_SHORT="${BUNDLE_SHORT##*\\}"
+    echo "Installing bundle: $BUNDLE_SHORT"
+    bin/console pimcore:bundle:install $BUNDLE_SHORT
+    {{- end }}
+    {{- end }}
+
+
+  bundles.php: |
+    <?php
+    return [
+    {{- range $bundle := .Values.php.bundles }}
+        {{ $bundle }}::class => ['all' => true],
+    {{- end }}
+    {{- range $bundle := .Values.php.removeBundles }}
+        {{ $bundle }}::class => ['all' => true],
+    {{- end }}
+    ];
+
