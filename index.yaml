@@ -3,6 +3,39 @@ entries:
   pimcore:
   - apiVersion: v2
     appVersion: "2025.1"
+    created: "2025-07-25T05:04:27.345859008Z"
+    dependencies:
+    - name: mariadb
+      repository: https://charts.bitnami.com/bitnami
+      version: 20.5.5
+    - name: valkey
+      repository: https://charts.bitnami.com/bitnami
+      version: 3.0.6
+    - name: rabbitmq
+      repository: https://charts.bitnami.com/bitnami
+      version: 16.0.2
+    description: A Helm chart to deploy Pimecore on Kubernetes
+    digest: f6c72135c20ace16fbe1d3e9f353b647e116fd1446a951f190ae91dacea23c82
+    home: https://github.com/bezon-dev/pimcore-helm-chart
+    icon: https://pimcore.com/favicon.ico
+    keywords:
+    - pimcore
+    - pim
+    - cms
+    - kubernetes
+    - helm
+    maintainers:
+    - email: k.erber@erber-freelance.de
+      name: Klaus Erber
+    name: pimcore
+    sources:
+    - https://github.com/bezon-dev/pimcore-helm-chart
+    type: application
+    urls:
+    - https://github.com/bezon-dev/pimcore-helm-chart/releases/download/pimcore-1.1.1/pimcore-1.1.1.tgz
+    version: 1.1.1
+  - apiVersion: v2
+    appVersion: "2025.1"
     created: "2025-06-04T14:45:09.062186044Z"
     dependencies:
     - name: mariadb
@@ -100,4 +133,4 @@ entries:
     urls:
     - https://github.com/bezon-dev/pimcore-helm-chart/releases/download/pimcore-1.0.1/pimcore-1.0.1.tgz
     version: 1.0.1
-generated: "2025-06-04T14:45:09.062203106Z"
+generated: "2025-07-25T05:04:27.345878956Z"
