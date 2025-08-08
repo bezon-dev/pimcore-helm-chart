@@ -1,6 +1,6 @@
 # Pimecore Helm Chart
 
-![Version: 1.1.1](https://img.shields.io/badge/Version-1.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2025.1](https://img.shields.io/badge/AppVersion-2025.1-informational?style=flat-square)
+![Version: 1.1.2](https://img.shields.io/badge/Version-1.1.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2025.1](https://img.shields.io/badge/AppVersion-2025.1-informational?style=flat-square)
 
 A Helm chart to deploy Pimecore on Kubernetes
 
@@ -28,7 +28,7 @@ Read more about the product registration in the [Pimcore documentation](https://
 ```bash
 helm repo add pimcore-helm-chart https://bezon-dev.github.io/pimcore-helm-chart
 helm repo update
-helm install -n <pimcore-namespace> <release-name> pimcore-helm-chart/pimcore -f values.yaml --version 1.1.1
+helm install -n <pimcore-namespace> <release-name> pimcore-helm-chart/pimcore -f values.yaml --version 1.1.2
 ```
 
 ## Limitations

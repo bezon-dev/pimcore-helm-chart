@@ -172,6 +172,10 @@ spec:
           volumeMounts:
             - name: pimcore-root
               mountPath: /var/www/html
+            - name: supervisord-config
+              mountPath: /etc/supervisor/conf.d/pimcore.conf
+              subPath: supervisord.conf
+              readOnly: true
           resources: {}
       volumes:
         - name: pimcore-root
