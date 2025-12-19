@@ -11,7 +11,7 @@ terminationGracePeriodSeconds: 30
 # -- package to install possible values:<br />
 #   pimcore/skeleton<br />
 #   pimcore/demo
-pimecorePackage: pimcore/skeleton
+pimcorePackage: pimcore/skeleton
 
 pvc:
   # -- Size of the volume for the web root

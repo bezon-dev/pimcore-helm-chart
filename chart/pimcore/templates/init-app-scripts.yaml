@@ -36,11 +36,12 @@ data:
       echo "Create Pimcore project"
       echo ""
       composer config --global allow-plugins.php-http/discovery true
-      composer create-project {{ .Values.pimecorePackage }} new-project
+      composer create-project {{ .Values.pimcorePackage }} new-project
 
       echo ""
       echo "Copy new project to /var/www/html"
       echo ""
+      rm -f ./new-project/config/bundles.php || true
       cp -a new-project/. ./
       rm -rf new-project
 
@@ -72,7 +73,6 @@ data:
     composer require{{- range $e := .Values.php.packages }} {{ $e }}{{- end }}
     {{- end }}
 
-
     {{- if .Values.php.bundles }}
     # install bundles
     {{- range $bundle := .Values.php.bundles }}
@@ -87,6 +87,7 @@ data:
   bundles.php: |
     <?php
     return [
+        //Twig\Extra\TwigExtraBundle\TwigExtraBundle::class => ['all' => true],
     {{- range $bundle := .Values.php.bundles }}
         {{ $bundle }}::class => ['all' => true],
     {{- end }}

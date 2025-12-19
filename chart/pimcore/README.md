@@ -112,7 +112,7 @@ We will address some of these limitations in the future. If you have any suggest
 | php.securityContext.runAsUser | int | `33` | User to run the php conatainer, 33=www-data |
 | php.startupProbe | object | `{"failureThreshold":120,"initialDelaySeconds":5,"periodSeconds":5,"successThreshold":1,"tcpSocket":{"port":9000},"timeoutSeconds":2}` | startup probe |
 | php.volumeMounts | list | `[]` | Additional volumeMounts for the Deployment. |
-| pimecorePackage | string | `"pimcore/skeleton"` | package to install possible values:<br />   pimcore/skeleton<br />   pimcore/demo |
+| pimcorePackage | string | `"pimcore/skeleton"` | package to install possible values:<br />   pimcore/skeleton<br />   pimcore/demo |
 | podAnnotations | object | `{}` | This is for setting Kubernetes Annotations to a Pod. For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/ |
 | podLabels | object | `{}` | This is for setting Kubernetes Labels to a Pod. For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/ |
 | podSecurityContext.fsGroup | int | `33` |  |
